@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">Jarflix</string>
+    <string name="search">Buscar</string>
+    <string name="search_hint">Buscar…</string>
+    <string name="genres">Gêneros</string>
+    <string name="see_all">Ver tudo</string>
+    <string name="trending">Em alta</string>
+    <string name="popular">Popular</string>
+    <string name="top_rated">Mais votados</string>
+</resources>
