@@ -18,20 +18,23 @@ import com.jalloft.jarflix.model.movie.Movie
 import com.jalloft.jarflix.ui.theme.CarmineRed
 import com.jalloft.jarflix.ui.theme.White
 import com.jalloft.jarflix.ui.viewmodel.HomeViewModel
+import com.jalloft.jarflix.ui.viewmodel.RemoteCallState
 import com.jalloft.jarflix.utils.IMAGE_URL_ORIGINAL
 import com.jalloft.jarflix.utils.IMAGE_URL_W500
+import com.jalloft.jarflix.utils.toImageOrigial
+import com.jalloft.jarflix.utils.toImageW500
 import kotlinx.coroutines.delay
 import timber.log.Timber
 
 
 @Composable
-fun CarouselTrendingPanel(remoteCallState: HomeViewModel.RemoteCallState?) {
+fun CarouselTrendingPanel(remoteCallState: RemoteCallState?) {
     when (remoteCallState) {
-        is HomeViewModel.RemoteCallState.Loading -> {
+        is RemoteCallState.Loading -> {
             Timber.i("Carregando...")
             LoadingPanel()
         }
-        is HomeViewModel.RemoteCallState.Success<*> -> {
+        is RemoteCallState.Success<*> -> {
             remoteCallState.media?.let { trendingResult ->
                 CarouselTrending(trendingResult as Movie)
             }
@@ -92,7 +95,7 @@ fun CarouselTrending(trendingResult: Movie) {
                 contentAlignment = Alignment.CenterStart
             ) {
                 AsyncImage(
-                    model = "$IMAGE_URL_W500${trendingMovie.backdropPath}",
+                    model = trendingMovie.backdropPath?.toImageW500,
                     contentDescription = null,
                     contentScale = ContentScale.FillWidth,
                     modifier = Modifier
@@ -107,7 +110,7 @@ fun CarouselTrending(trendingResult: Movie) {
                         .padding(8.dp)
                 ) {
                     AsyncImage(
-                        model = "$IMAGE_URL_ORIGINAL${trendingMovie.posterPath}",
+                        model = trendingMovie.posterPath?.toImageOrigial,
                         contentDescription = null,
                         modifier = Modifier
                             .size(120.dp, 180.dp)

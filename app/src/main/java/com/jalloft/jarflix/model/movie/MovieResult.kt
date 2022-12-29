@@ -35,6 +35,7 @@ data class MovieResult(
     @SerializedName("vote_count")
     val voteCount: Int?
 ){
+
     val genreList: List<MovieGenre> get() {
         val sum = genreIds + MovieGenre.values().map { it.id }
        return sum.groupBy { it }

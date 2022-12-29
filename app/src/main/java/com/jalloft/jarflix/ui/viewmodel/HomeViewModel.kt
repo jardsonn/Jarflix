@@ -4,6 +4,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.jalloft.jarflix.model.movie.detail.MovieDetails
 import com.jalloft.jarflix.remote.MovieRepository
 import com.jalloft.jarflix.remote.ResultState
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -49,11 +50,18 @@ class HomeViewModel @Inject constructor(private val repository: MovieRepository)
     private val _remoteSearchMovieCallState = MutableLiveData<RemoteCallState>()
     val remoteSearchMovieCallState: LiveData<RemoteCallState> = _remoteSearchMovieCallState
 
-    private val _remoteMovieDetailsCallState = MutableLiveData<RemoteCallState>()
-    val remoteMovieDetailsCallState: LiveData<RemoteCallState> = _remoteMovieDetailsCallState
+//    private val _remoteMovieDetailsCallState = MutableLiveData<RemoteCallState>()
+//    val remoteMovieDetailsCallState: LiveData<RemoteCallState> = _remoteMovieDetailsCallState
 
- private val _remoteMovieVideoCallState = MutableLiveData<RemoteCallState>()
-    val remoteMovieVideoCallState: LiveData<RemoteCallState> = _remoteMovieVideoCallState
+
+      private val _remoteMovieDetails = MutableLiveData<MovieDetails>()
+    val remoteMovieDetails: LiveData<MovieDetails> = _remoteMovieDetails
+
+
+
+
+// private val _remoteMovieVideoCallState = MutableLiveData<RemoteCallState>()
+//    val remoteMovieVideoCallState: LiveData<RemoteCallState> = _remoteMovieVideoCallState
 
 
     init {
@@ -64,38 +72,14 @@ class HomeViewModel @Inject constructor(private val repository: MovieRepository)
     }
 
     fun initMovieDetails(movieId: Int){
-        makeRemoteCall(_remoteMovieDetailsCallState){getMovieDetails(movieId)}
-        makeRemoteCall(_remoteMovieVideoCallState){getMovieVideo(movieId)}
-
-//        viewModelScope.launch {
-//            getMovieDetails(movieId).collect{
-//                when (it.status) {
-//                    ResultState.Status.LOADING -> {
-//                        _remoteMovieDetailsCallState.postValue(RemoteCallState.Loading)
-//                    }
-//                    ResultState.Status.SUCCESS -> {
-//                        _remoteMovieDetailsCallState.postValue(RemoteCallState.Success(it.data))
-//                    }
-//                    ResultState.Status.ERROR -> {
-//                        _remoteMovieDetailsCallState.postValue(RemoteCallState.Error)
-//                    }
-//                }
-//            }
-//
-//            getMovieDetails(movieId).collect{
-//                when (it.status) {
-//                    ResultState.Status.LOADING -> {
-//                        _remoteMovieDetailsCallState.postValue(RemoteCallState.Loading)
-//                    }
-//                    ResultState.Status.SUCCESS -> {
-//                        _remoteMovieDetailsCallState.postValue(RemoteCallState.Success(it.data))
-//                    }
-//                    ResultState.Status.ERROR -> {
-//                        _remoteMovieDetailsCallState.postValue(RemoteCallState.Error)
-//                    }
-//                }
-//            }
-//        }
+//        makeRemoteCall(_remoteMovieDetailsCallState){getMovieDetails(movieId)}
+        viewModelScope.launch {
+            getMovieDetails(movieId).collect{
+                if (it.status == ResultState.Status.SUCCESS){
+                    _remoteMovieDetails.postValue(it.data)
+                }
+            }
+        }
     }
 
     fun onSearchQueryChange(query: String) {
@@ -186,10 +170,4 @@ class HomeViewModel @Inject constructor(private val repository: MovieRepository)
 //        }
 //    }
 
-    sealed class RemoteCallState {
-        object Loading : RemoteCallState()
-        data class Success<T>(val media: T?) : RemoteCallState()
-        object Error : RemoteCallState()
-
-    }
 }

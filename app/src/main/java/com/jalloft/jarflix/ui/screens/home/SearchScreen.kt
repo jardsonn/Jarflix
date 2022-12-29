@@ -25,7 +25,9 @@ import com.jalloft.jarflix.model.movie.Movie
 import com.jalloft.jarflix.ui.components.HorizontalPanelAction
 import com.jalloft.jarflix.ui.theme.SelectiveYellow
 import com.jalloft.jarflix.ui.viewmodel.HomeViewModel
+import com.jalloft.jarflix.ui.viewmodel.RemoteCallState
 import com.jalloft.jarflix.utils.IMAGE_URL_ORIGINAL
+import com.jalloft.jarflix.utils.toImageOrigial
 import java.text.DecimalFormat
 
 
@@ -37,7 +39,7 @@ fun SearchScreen(
 ) {
     val searchResultState by viewModel.remoteSearchMovieCallState.observeAsState()
     searchResultState?.let { state ->
-        if (state is HomeViewModel.RemoteCallState.Success<*>) {
+        if (state is RemoteCallState.Success<*>) {
             val movies = (state.media as Movie).results
             LazyColumn(
                 modifier = Modifier
@@ -56,7 +58,7 @@ fun SearchScreen(
                             horizontalArrangement = Arrangement.spacedBy(8.dp),
                         ) {
                             AsyncImage(
-                                model = "$IMAGE_URL_ORIGINAL${movie.posterPath}",
+                                model = movie.posterPath?.toImageOrigial,
                                 contentDescription = movie.title,
                                 modifier = Modifier
                                     .width(120.dp)

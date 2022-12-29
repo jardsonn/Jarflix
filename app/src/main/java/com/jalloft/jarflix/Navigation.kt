@@ -10,6 +10,7 @@ import com.jalloft.jarflix.model.movie.MovieResult
 import com.jalloft.jarflix.ui.components.HorizontalPanelAction
 import com.jalloft.jarflix.ui.screens.details.MovieDetails
 import com.jalloft.jarflix.ui.screens.home.Home
+import timber.log.Timber
 
 @Composable
 fun AppNavigator() {
@@ -24,6 +25,7 @@ fun AppNavigator() {
                 if (it is HorizontalPanelAction.SeeAll) {
 
                 } else if (it is HorizontalPanelAction.Item<*>) {
+                    Timber.i("ir para a proxima")
                     navController.navigate(Screens.MovieDetailsScreen.route.plus("/?movieId=${(it.data as MovieResult).id}"))
                 }
             }
@@ -38,7 +40,10 @@ fun AppNavigator() {
                 })
         ) {
             it.arguments?.getInt("movieId")?.let { movieId ->
-                MovieDetails(movieId =  movieId)
+                Timber.i("chengando aqi")
+                MovieDetails(movieId =  movieId){
+                    navController.popBackStack()
+                }
             }
 
         }

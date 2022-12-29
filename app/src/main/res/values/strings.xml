@@ -7,4 +7,7 @@
     <string name="trending">Em alta</string>
     <string name="popular">Popular</string>
     <string name="top_rated">Mais votados</string>
+    <string name="back">Voltar</string>
+    <string name="original_title">Título original: %s</string>
+    <string name="overview">Visão geral</string>
 </resources>

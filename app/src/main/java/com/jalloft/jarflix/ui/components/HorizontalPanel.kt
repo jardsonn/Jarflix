@@ -30,18 +30,20 @@ import com.jalloft.jarflix.model.movie.Movie
 import com.jalloft.jarflix.ui.theme.SelectiveYellow
 import com.jalloft.jarflix.ui.theme.White
 import com.jalloft.jarflix.ui.viewmodel.HomeViewModel
+import com.jalloft.jarflix.ui.viewmodel.RemoteCallState
 import com.jalloft.jarflix.utils.IMAGE_URL_ORIGINAL
+import com.jalloft.jarflix.utils.toImageOrigial
 import java.text.DecimalFormat
 
 @Composable
 fun HorizontalGenrePanel(
     modifier: Modifier = Modifier,
     title: String,
-    remoteState: HomeViewModel.RemoteCallState?,
+    remoteState: RemoteCallState?,
     onGenreSelected: (Genre) -> Unit
 ) {
     remoteState?.let { state ->
-        if (state is HomeViewModel.RemoteCallState.Success<*>) {
+        if (state is RemoteCallState.Success<*>) {
             val genres = (state.media as GenreObject).genres
             Column(
                 modifier = modifier
@@ -82,11 +84,11 @@ fun HorizontalGenrePanel(
 fun HorizontalMoviePanel(
     modifier: Modifier = Modifier,
     title: String,
-    remoteState: HomeViewModel.RemoteCallState?,
+    remoteState: RemoteCallState?,
     onClick: (HorizontalPanelAction) -> Unit
 ) {
     remoteState?.let { state ->
-        if (state is HomeViewModel.RemoteCallState.Success<*>) {
+        if (state is RemoteCallState.Success<*>) {
             val movies = (state.media as Movie).results
             Column(
                 modifier = modifier
@@ -126,7 +128,7 @@ fun HorizontalMoviePanel(
                                 .clickable { onClick(HorizontalPanelAction.Item(movie)) }
                         ) {
                             AsyncImage(
-                                model = "$IMAGE_URL_ORIGINAL${movie.posterPath}",
+                                model = movie.posterPath?.toImageOrigial,
                                 contentDescription = movie.title,
                                 modifier = Modifier
                                     .height(180.dp)
