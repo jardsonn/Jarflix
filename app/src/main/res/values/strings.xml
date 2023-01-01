@@ -10,4 +10,13 @@
     <string name="back">Voltar</string>
     <string name="original_title">Título original: %s</string>
     <string name="overview">Visão geral</string>
+    <string name="cast">Elenco</string>
+    <string name="not_found">Não encontrado</string>
+    <string name="similar_movies">Fillmes semelhantes</string>
+    <string name="movie_trending">Filmes em alta</string>
+    <string name="movie_popular">Filmes populares</string>
+    <string name="movie_top_rated">Fimes mais votados</string>
+
+    <string name="crew">Equipe técnica</string>
+    <string name="movie_similar">Filmes semelhantes a \'%s\'</string>
 </resources>

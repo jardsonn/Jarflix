@@ -1,27 +1,38 @@
 package com.jalloft.jarflix.ui.viewmodel
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.*
+import com.jalloft.jarflix.model.movie.Movie
+import com.jalloft.jarflix.model.movie.detail.MovieCastCrew
 import com.jalloft.jarflix.model.movie.detail.MovieDetails
 import com.jalloft.jarflix.remote.MovieRepository
 import com.jalloft.jarflix.remote.ResultState
+import com.jalloft.jarflix.ui.components.TopAppBarState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class HomeViewModel @Inject constructor(private val repository: MovieRepository) : ViewModel() {
+class HomeViewModel @Inject constructor(
+    private val repository: MovieRepository,
+    savedState: SavedStateHandle
+) : ViewModel() {
 
-    private suspend fun getMovieTrending() = repository.getMovieTrending()
+    private val _topBarState = MutableLiveData(TopAppBarState.NORMAL)
+    val topBarState: LiveData<TopAppBarState> = _topBarState
 
-    private suspend fun getPopularMovie() = repository.getPopularMovieList()
+    fun updateTopBarState(state: TopAppBarState) {
+        _topBarState.value = state
+    }
 
-    private suspend fun getTopRatedMovie() = repository.getTopRatedMovieList()
+
+    private suspend fun getMovieTrending(page: Int = 1) = repository.getMovieTrending(page = page)
+
+    private suspend fun getPopularMovie(page: Int = 1) = repository.getPopularMovieList(page = page)
+
+    private suspend fun getTopRatedMovie(page: Int = 1) =
+        repository.getTopRatedMovieList(page = page)
 
     private suspend fun getGenreList() = repository.getGenreList()
 
@@ -29,8 +40,17 @@ class HomeViewModel @Inject constructor(private val repository: MovieRepository)
 
     private suspend fun getMovieVideo(movieId: Int) = repository.getMovieVideo(movieId)
 
-    private suspend fun searchRemoteMovie(query: String, showAdultResult: Boolean = false) =
-        repository.searchMovie(query, showAdultResult = showAdultResult)
+    private suspend fun getMovieCast(movieId: Int) = repository.getMovieCast(movieId)
+
+    private suspend fun getSimilarMovie(movieId: Int, page: Int = 1) =
+        repository.getSimilarMovie(movieId, page = page)
+
+    private suspend fun searchRemoteMovie(
+        query: String,
+        showAdultResult: Boolean = false,
+        page: Int = 1
+    ) =
+        repository.searchMovie(query, showAdultResult = showAdultResult, page = page)
 
     private val _searchQuery = MutableLiveData<String>("")
     val searchQuery: LiveData<String> = _searchQuery
@@ -50,18 +70,14 @@ class HomeViewModel @Inject constructor(private val repository: MovieRepository)
     private val _remoteSearchMovieCallState = MutableLiveData<RemoteCallState>()
     val remoteSearchMovieCallState: LiveData<RemoteCallState> = _remoteSearchMovieCallState
 
-//    private val _remoteMovieDetailsCallState = MutableLiveData<RemoteCallState>()
-//    val remoteMovieDetailsCallState: LiveData<RemoteCallState> = _remoteMovieDetailsCallState
-
-
-      private val _remoteMovieDetails = MutableLiveData<MovieDetails>()
+    private val _remoteMovieDetails = MutableLiveData<MovieDetails>()
     val remoteMovieDetails: LiveData<MovieDetails> = _remoteMovieDetails
 
+    private val _remoteMovieCastCrew = MutableLiveData<MovieCastCrew>()
+    val remoteMovieCastCrew: LiveData<MovieCastCrew> = _remoteMovieCastCrew
 
-
-
-// private val _remoteMovieVideoCallState = MutableLiveData<RemoteCallState>()
-//    val remoteMovieVideoCallState: LiveData<RemoteCallState> = _remoteMovieVideoCallState
+    private val _remoteSimilarMovie = MutableLiveData<Movie>()
+    val remoteSimilarMovie: LiveData<Movie> = _remoteSimilarMovie
 
 
     init {
@@ -71,14 +87,27 @@ class HomeViewModel @Inject constructor(private val repository: MovieRepository)
         makeRemoteCall(_remoteTopRatedMovieCallState) { getTopRatedMovie() }
     }
 
-    fun initMovieDetails(movieId: Int){
+    fun initMovieDetails(movieId: Int) {
 //        makeRemoteCall(_remoteMovieDetailsCallState){getMovieDetails(movieId)}
         viewModelScope.launch {
-            getMovieDetails(movieId).collect{
-                if (it.status == ResultState.Status.SUCCESS){
+            getMovieDetails(movieId).collect {
+                if (it.status == ResultState.Status.SUCCESS) {
                     _remoteMovieDetails.postValue(it.data)
                 }
             }
+            getMovieCast(movieId).collect {
+                if (it.status == ResultState.Status.SUCCESS) {
+                    _remoteMovieCastCrew.postValue(it.data)
+                }
+            }
+
+            getSimilarMovie(movieId).collect {
+                if (it.status == ResultState.Status.SUCCESS) {
+                    _remoteSimilarMovie.postValue(it.data)
+                }
+            }
+
+
         }
     }
 
@@ -169,5 +198,6 @@ class HomeViewModel @Inject constructor(private val repository: MovieRepository)
 //            }
 //        }
 //    }
+
 
 }

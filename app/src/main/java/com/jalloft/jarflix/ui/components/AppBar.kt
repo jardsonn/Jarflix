@@ -12,6 +12,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.SolidColor
@@ -29,9 +30,11 @@ enum class TopAppBarState {
 
 @Composable
 fun HomeTopAppBar(
+    topBarState: TopAppBarState?,
+    updateTopBaState: (TopAppBarState) -> Unit,
     onPerformQuery: (String) -> Unit
 ) {
-    var topBarState by remember { mutableStateOf(TopAppBarState.NORMAL) }
+
     Column {
         Crossfade(
             targetState = topBarState,
@@ -41,14 +44,14 @@ fun HomeTopAppBar(
                 TopAppBarState.NORMAL -> {
                     NormalTopAppBar(
                         modifier = Modifier.padding(vertical = 16.dp, horizontal = 16.dp),
-                        onSearchClicked = { topBarState = TopAppBarState.SEARCH }
+                        onSearchClicked = { updateTopBaState(TopAppBarState.SEARCH )}
                     )
                 }
                 TopAppBarState.SEARCH -> {
                     SearchTopAppBar(
                         modifier = Modifier.padding(vertical = 16.dp, horizontal = 16.dp),
                         onPerformQuery = { onPerformQuery(it) },
-                        onCancelClicked = { topBarState = TopAppBarState.NORMAL }
+                        onCancelClicked = { updateTopBaState(TopAppBarState.NORMAL) }
                     )
                 }
             }
@@ -62,7 +65,7 @@ fun SearchTopAppBar(
     onPerformQuery: (String) -> Unit,
     onCancelClicked: () -> Unit
 ) {
-    val (text, setText) = remember { mutableStateOf("") }
+    val (text, setText) = rememberSaveable{ mutableStateOf("") }
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween,

@@ -1,5 +1,6 @@
 package com.jalloft.jarflix.ui.components
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.collectIsDraggedAsState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -15,12 +16,10 @@ import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.google.accompanist.pager.*
 import com.jalloft.jarflix.model.movie.Movie
+import com.jalloft.jarflix.model.movie.MovieResult
 import com.jalloft.jarflix.ui.theme.CarmineRed
 import com.jalloft.jarflix.ui.theme.White
-import com.jalloft.jarflix.ui.viewmodel.HomeViewModel
 import com.jalloft.jarflix.ui.viewmodel.RemoteCallState
-import com.jalloft.jarflix.utils.IMAGE_URL_ORIGINAL
-import com.jalloft.jarflix.utils.IMAGE_URL_W500
 import com.jalloft.jarflix.utils.toImageOrigial
 import com.jalloft.jarflix.utils.toImageW500
 import kotlinx.coroutines.delay
@@ -28,7 +27,7 @@ import timber.log.Timber
 
 
 @Composable
-fun CarouselTrendingPanel(remoteCallState: RemoteCallState?) {
+fun CarouselTrendingPanel(remoteCallState: RemoteCallState?, onItemSelected: (MovieResult) -> Unit) {
     when (remoteCallState) {
         is RemoteCallState.Loading -> {
             Timber.i("Carregando...")
@@ -36,7 +35,7 @@ fun CarouselTrendingPanel(remoteCallState: RemoteCallState?) {
         }
         is RemoteCallState.Success<*> -> {
             remoteCallState.media?.let { trendingResult ->
-                CarouselTrending(trendingResult as Movie)
+                CarouselTrending(trendingResult as Movie){onItemSelected(it)}
             }
         }
         else -> {
@@ -71,14 +70,13 @@ fun LoadingPanel() {
 
 @OptIn(ExperimentalPagerApi::class)
 @Composable
-fun CarouselTrending(trendingResult: Movie) {
+fun CarouselTrending(trendingResult: Movie, onItemSelected: (MovieResult) -> Unit) {
     val trendingList = trendingResult.results
 
     val pagerState = rememberPagerState()
     Box(
-        modifier = Modifier.fillMaxWidth(),
-        contentAlignment = Alignment.BottomCenter
-
+        modifier = Modifier.fillMaxWidth().clickable { onItemSelected(trendingList[pagerState.currentPage]) },
+        contentAlignment = Alignment.BottomCenter,
     ) {
         val pageCount = 5
         HorizontalPager(

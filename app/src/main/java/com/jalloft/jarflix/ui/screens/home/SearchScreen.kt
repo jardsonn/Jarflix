@@ -22,6 +22,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.jalloft.jarflix.model.movie.Movie
+import com.jalloft.jarflix.model.movie.MovieResult
 import com.jalloft.jarflix.ui.components.HorizontalPanelAction
 import com.jalloft.jarflix.ui.theme.SelectiveYellow
 import com.jalloft.jarflix.ui.viewmodel.HomeViewModel
@@ -35,7 +36,7 @@ import java.text.DecimalFormat
 fun SearchScreen(
     innerPadding: PaddingValues,
     viewModel: HomeViewModel,
-    onClick: (HorizontalPanelAction) -> Unit
+    onMovieClicked: (MovieResult) -> Unit,
 ) {
     val searchResultState by viewModel.remoteSearchMovieCallState.observeAsState()
     searchResultState?.let { state ->
@@ -54,7 +55,7 @@ fun SearchScreen(
                                 .height(180.dp)
                                 .padding(16.dp)
                                 .clip(RoundedCornerShape(10.dp))
-                                .clickable { onClick(HorizontalPanelAction.Item(movie)) },
+                                .clickable { onMovieClicked(movie) },
                             horizontalArrangement = Arrangement.spacedBy(8.dp),
                         ) {
                             AsyncImage(

@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.IconButton
 import androidx.compose.material.icons.Icons
@@ -17,6 +18,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
@@ -28,46 +30,71 @@ import androidx.compose.ui.zIndex
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.jalloft.jarflix.R
+import com.jalloft.jarflix.model.movie.MovieRowType
+import com.jalloft.jarflix.model.movie.Movie
+import com.jalloft.jarflix.model.movie.detail.MovieCastCrew
 import com.jalloft.jarflix.model.movie.detail.MovieDetails
+import com.jalloft.jarflix.ui.components.HorizontalCast
+import com.jalloft.jarflix.ui.components.HorizontalCrew
+import com.jalloft.jarflix.ui.components.HorizontalMoviePanel
 import com.jalloft.jarflix.ui.theme.SelectiveYellow
 import com.jalloft.jarflix.ui.viewmodel.HomeViewModel
 import com.jalloft.jarflix.utils.toHour
 import com.jalloft.jarflix.utils.toImageOrigial
+import kotlinx.coroutines.launch
 import java.text.DecimalFormat
-
 
 @Composable
 fun MovieDetails(
     viewModel: HomeViewModel = hiltViewModel(),
     movieId: Int,
+    onSeeMore: (MovieDetails) -> Unit,
     onBackPressed: () -> Unit
 ) {
     viewModel.initMovieDetails(movieId)
     val movieDetails by viewModel.remoteMovieDetails.observeAsState()
+    val movieCastCrew by viewModel.remoteMovieCastCrew.observeAsState()
+    val similarMovie by viewModel.remoteSimilarMovie.observeAsState()
+
+    val itensColumnState = rememberLazyListState()
+    val coroutineScope = rememberCoroutineScope()
+
     LazyColumn(
+        state = itensColumnState,
         modifier = Modifier
             .fillMaxSize()
     ) {
         item {
-            movieDetails?.let {
-                Header(it) { onBackPressed() }
-                Overview(it)
+            movieDetails?.let { movieDetails ->
+                Header(movieDetails) { onBackPressed() }
+                Overview(movieDetails, movieCastCrew, similarMovie, onSeeMore = {onSeeMore(movieDetails)}) { similarMovieId ->
+                    coroutineScope.launch {
+                        viewModel.initMovieDetails(similarMovieId)
+                        itensColumnState.animateScrollToItem(0)
+                    }
+                }
             }
         }
     }
 }
 
 @Composable
-fun Overview(movieDetails: MovieDetails) {
+fun Overview(
+    movieDetails: MovieDetails,
+    movieCastCrew: MovieCastCrew?,
+    similarMovie: Movie?,
+    onSeeMore: (MovieRowType) -> Unit,
+    onMovieClicked: (Int) -> Unit,
+) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(16.dp)
     ) {
         Text(
             text = movieDetails.title,
             style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.Bold
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp)
         )
 
         Text(
@@ -77,10 +104,11 @@ fun Overview(movieDetails: MovieDetails) {
             color = MaterialTheme.colorScheme.onSurface.copy(0.5f),
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 8.dp),
+                .padding(top = 8.dp, start = 16.dp, end = 16.dp),
         )
         Row(
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.padding(horizontal = 16.dp)
         ) {
             Text(
                 text = movieDetails.releaseDate.split("-")[0],
@@ -104,10 +132,7 @@ fun Overview(movieDetails: MovieDetails) {
                 color = MaterialTheme.colorScheme.onSurface.copy(0.5f),
                 modifier = Modifier.padding(start = 8.dp)
             )
-        }
-        Row(
-            verticalAlignment = Alignment.CenterVertically
-        ) {
+            Spacer(modifier = Modifier.weight(1f))
             Image(
                 imageVector = Icons.Rounded.Star,
                 contentDescription = null,
@@ -127,12 +152,11 @@ fun Overview(movieDetails: MovieDetails) {
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface.copy(0.5f)
             )
-
         }
 
         LazyRow(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
-            modifier = Modifier.padding(top = 8.dp)
+            modifier = Modifier.padding(top = 8.dp, start = 16.dp, end = 16.dp)
         ) {
             movieDetails.genres?.let { list ->
                 items(list) { genre ->
@@ -151,16 +175,37 @@ fun Overview(movieDetails: MovieDetails) {
                 }
             }
         }
-        movieDetails.overview?.let { overview->
+
+        movieDetails.overview?.let { overview ->
             Text(
                 text = stringResource(id = R.string.overview),
                 style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)
+                modifier = Modifier.padding(top = 16.dp, bottom = 4.dp, start = 16.dp, end = 16.dp)
             )
             Text(
                 text = overview,
-                style = MaterialTheme.typography.bodyLarge
+                style = MaterialTheme.typography.bodyLarge,
+                modifier = Modifier.padding(horizontal = 16.dp)
+            )
+        }
+
+        movieCastCrew?.let {
+            HorizontalCast(modifier = Modifier.padding(top = 16.dp), castList = it.cast) {
+            }
+            HorizontalCrew(modifier = Modifier.padding(top = 16.dp), castList = it.crew) {
+            }
+        }
+
+
+        similarMovie?.results?.let { list ->
+            HorizontalMoviePanel(
+                rowType = MovieRowType.SIMILAR,
+                modifier = Modifier.padding(top = 16.dp),
+                stringResource(id = R.string.similar_movies),
+                list,
+                onMovieClicked = { similarMovie -> onMovieClicked(similarMovie.id ?: -1) },
+                onSeeMore = { onSeeMore(it) }
             )
         }
     }

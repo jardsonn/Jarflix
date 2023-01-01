@@ -11,19 +11,21 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.jalloft.jarflix.R
+import com.jalloft.jarflix.model.genre.Genre
+import com.jalloft.jarflix.model.movie.MovieRowType
 import com.jalloft.jarflix.model.movie.MovieResult
 import com.jalloft.jarflix.ui.components.CarouselTrendingPanel
 import com.jalloft.jarflix.ui.components.HorizontalGenrePanel
-import com.jalloft.jarflix.ui.components.HorizontalMoviePanel
-import com.jalloft.jarflix.ui.components.HorizontalPanelAction
+import com.jalloft.jarflix.ui.components.HorizontalStateMoviePanel
 import com.jalloft.jarflix.ui.viewmodel.HomeViewModel
-import timber.log.Timber
 
 @Composable
 fun HomeScreen(
     innerPadding: PaddingValues,
     viewModel: HomeViewModel,
-    onClick: (HorizontalPanelAction) -> Unit
+    onSeeMore: (MovieRowType) -> Unit,
+    onGenre: (Genre) -> Unit,
+    onMovieClicked: (MovieResult) -> Unit,
 ) {
     val genreResult by viewModel.remoteGenreCallState.observeAsState()
     val movieTrendingResult by viewModel.remoteTrendingCallState.observeAsState()
@@ -35,56 +37,38 @@ fun HomeScreen(
             .padding(innerPadding)
     ) {
         item {
-            CarouselTrendingPanel(movieTrendingResult)
+            CarouselTrendingPanel(movieTrendingResult) {
+                onMovieClicked(it)
+            }
             HorizontalGenrePanel(
                 modifier = Modifier.padding(top = 16.dp),
                 title = stringResource(id = R.string.genres),
                 genreResult
-            ) {
-
-            }
-            HorizontalMoviePanel(
+            ) { onGenre(it) }
+            HorizontalStateMoviePanel(
+                rowType = MovieRowType.TRENDING,
                 modifier = Modifier.padding(top = 16.dp),
                 title = stringResource(id = R.string.trending),
-                movieTrendingResult
-            ) { action ->
-                when (action) {
-                    is HorizontalPanelAction.SeeAll -> {
-                        Timber.i("Ver mais")
-                    }
-                    is HorizontalPanelAction.Item<*> -> {
-                        onClick(HorizontalPanelAction.Item(action.data as MovieResult))
-                    }
-                }
-            }
-            HorizontalMoviePanel(
+                movieTrendingResult,
+                onMovieClicked = { onMovieClicked(it) },
+                onSeeMore = { onSeeMore(it) }
+            )
+            HorizontalStateMoviePanel(
+                rowType = MovieRowType.POPULAR,
                 modifier = Modifier.padding(top = 16.dp),
                 title = stringResource(id = R.string.popular),
-                popularMovieResult
-            ) { action ->
-                when (action) {
-                    is HorizontalPanelAction.SeeAll -> {
-                        Timber.i("Ver mais")
-                    }
-                    is HorizontalPanelAction.Item<*> -> {
-                        onClick(HorizontalPanelAction.Item(action.data as MovieResult))
-                    }
-                }
-            }
-            HorizontalMoviePanel(
-                modifier = Modifier.padding(top = 16.dp),
+                popularMovieResult,
+                onMovieClicked = { onMovieClicked(it) },
+                onSeeMore = { onSeeMore(it) }
+            )
+            HorizontalStateMoviePanel(
+                rowType = MovieRowType.TOP_RATED,
+                modifier = Modifier.padding(top = 16.dp, bottom = 16.dp),
                 title = stringResource(id = R.string.top_rated),
-                topRatedMovieCallState
-            ) { action ->
-                when (action) {
-                    is HorizontalPanelAction.SeeAll -> {
-                        Timber.i("Ver mais")
-                    }
-                    is HorizontalPanelAction.Item<*> -> {
-                        onClick(HorizontalPanelAction.Item(action.data as MovieResult))
-                    }
-                }
-            }
+                topRatedMovieCallState,
+                onMovieClicked = { onMovieClicked(it) },
+                onSeeMore = { onSeeMore(it) }
+            )
         }
     }
 }
